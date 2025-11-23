@@ -34,26 +34,26 @@ async def descargar_reddit_dump(url: str = "https://www.gutenberg.org/files/1342
         # Verificar si el archivo ya existe usando read_path (si falla, no existe)
         try:
             await minio_bucket.read_path(MINIO_FILE_KEY)
-            print(f"✅ Archivo ya existe en MinIO: s3://{MINIO_BUCKET_NAME}/{MINIO_FILE_KEY}")
+            print(f" Archivo ya existe en MinIO: s3://{MINIO_BUCKET_NAME}/{MINIO_FILE_KEY}")
             return MINIO_FILE_KEY
         except Exception:
             # El archivo no existe, proceder con la descarga
-            print(f"📥 Archivo no encontrado, procediendo con la descarga...")
+            print(f" Archivo no encontrado, procediendo con la descarga...")
 
-        print(f"🌐 Descargando dataset desde {url}...")
+        print(f" Descargando dataset desde {url}...")
         response = requests.get(url, stream=True, timeout=60)
         response.raise_for_status()
         
         data_content = response.content
 
-        print("☁️ Subiendo archivo a MinIO...")
+        print(" Subiendo archivo a MinIO...")
         await minio_bucket.write_path(path=MINIO_FILE_KEY, content=data_content)
         
-        print(f"✅ Subida completada: s3://{MINIO_BUCKET_NAME}/{MINIO_FILE_KEY}")
+        print(f" Subida completada: s3://{MINIO_BUCKET_NAME}/{MINIO_FILE_KEY}")
         return MINIO_FILE_KEY
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f" ERROR: {e}")
         raise e
 
 @task
@@ -61,7 +61,7 @@ async def ejecutar_procesamiento(minio_key: str):
     """
     Ejecuta el flow de procesamiento de Databricks pasando la key del archivo.
     """
-    print(f"🚀 Iniciando procesamiento de Databricks para: {minio_key}")
+    print(f" Iniciando procesamiento de Databricks para: {minio_key}")
     
     try:
         # Ejecutar el deployment del flow de procesamiento
@@ -71,11 +71,11 @@ async def ejecutar_procesamiento(minio_key: str):
             timeout=0  # Sin timeout, esperará indefinidamente
         )
         
-        print(f"✅ Flow de procesamiento ejecutado: {flow_run}")
+        print(f" Flow de procesamiento ejecutado: {flow_run}")
         return flow_run
         
     except Exception as e:
-        print(f"❌ Error al ejecutar procesamiento: {e}")
+        print(f" Error al ejecutar procesamiento: {e}")
         raise e
 
 @flow(name="Flujo de Ingesta de Reddit")
@@ -87,12 +87,12 @@ async def flujo_ingesta():
     
     # Paso 1: Descargar/verificar archivo
     minio_key = await descargar_reddit_dump()
-    print(f"✅ Ingesta completada. Archivo disponible en: {minio_key}")
+    print(f" Ingesta completada. Archivo disponible en: {minio_key}")
     
     # Paso 2: Ejecutar procesamiento en Databricks
     await ejecutar_procesamiento(minio_key)
     
-    print(f"🎉 Pipeline completo finalizado exitosamente")
+    print(f" Pipeline completo finalizado exitosamente")
 
 if __name__ == "__main__":
     import asyncio
