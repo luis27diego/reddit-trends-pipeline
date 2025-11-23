@@ -22,7 +22,7 @@ async def descargar_reddit_dump(url: str = "https://files.pushshift.io/reddit/co
 
     try:
         # Cargar credenciales
-        aws_credentials_block = AwsCredentials.load(MINIO_BLOCK_NAME)
+        aws_credentials_block = await AwsCredentials.load(MINIO_BLOCK_NAME)
         
         # Crear el bucket con las credenciales
         minio_bucket = S3Bucket(
