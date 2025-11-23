@@ -66,7 +66,7 @@ async def ejecutar_procesamiento(minio_key: str):
     try:
         # Ejecutar el deployment del flow de procesamiento
         flow_run = await run_deployment(
-            name="Flujo de Procesamiento de Palabras (Databricks)/reddit-processing-deployment",
+            name="Flujo-de-Procesamiento-de-Palabras-(Databricks)/reddit-processing-deployment",
             parameters={"minio_key_entrada": minio_key},
             timeout=0  # Sin timeout, esperará indefinidamente
         )
