@@ -19,9 +19,9 @@ def descargar_reddit_dump():
         with open(ruta_archivo, "wb") as f:
             for chunk in respuesta.iter_content(chunk_size=8192):
                 f.write(chunk)
-        print("Descarga completa ✅")
+        print("Descarga completa OK")
     else:
-        print("Archivo ya existe, saltando ✅")
+        print("Archivo ya existe, saltando OK")
 
     return ruta_archivo
 
