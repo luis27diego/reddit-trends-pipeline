@@ -13,7 +13,7 @@ def crear_directorio():
     pass
 
 @task(retries=1, retry_delay_seconds=10)
-async def descargar_reddit_dump(url: str = "https://files.pushshift.io/reddit/comments/RC_2023-01.zst"):
+async def descargar_reddit_dump(url: str = "https://www.gutenberg.org/files/1342/1342-0.txt"):
     """
     Versión corregida y actualizada para Prefect 2.14+ / 3.x
     """
