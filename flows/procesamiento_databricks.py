@@ -16,7 +16,7 @@ PROCESSED_FILE_KEY = "processed/word_counts"
 # Ruta al notebook en Databricks Workspace
 # IMPORTANTE: Actualiza con tu ruta real del notebook
 # Ejemplo: /Users/tu_email@gmail.com/procesamiento_reddit
-DATABRICKS_NOTEBOOK_PATH = "/Users/diego.27luis@gmail.com/procesamiento_reddit"
+DATABRICKS_NOTEBOOK_PATH = "/Workspace/procesamiento_reddit"
 # ----------------------------------------
 
 
