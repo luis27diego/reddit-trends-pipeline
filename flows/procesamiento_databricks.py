@@ -37,12 +37,12 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
     s3_input_path = f"s3a://{MINIO_BUCKET_NAME}/{minio_key_entrada}"
     s3_output_path = f"s3a://{MINIO_BUCKET_NAME}/{PROCESSED_FILE_KEY}"
 
-    logger.info(f"📥 Entrada: {s3_input_path}")
-    logger.info(f"📤 Salida: {s3_output_path}")
+    logger.info(f" Entrada: {s3_input_path}")
+    logger.info(f" Salida: {s3_output_path}")
 
     try:
         # Cargar credenciales de MinIO
-        logger.info(f"🔑 Cargando credenciales de MinIO...")
+        logger.info(f" Cargando credenciales de MinIO...")
         aws_credentials = await AwsCredentials.load(MINIO_BLOCK_NAME)
         
         # Obtener las credenciales
@@ -50,11 +50,11 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
         minio_secret_key = aws_credentials.aws_secret_access_key.get_secret_value()
         minio_endpoint = aws_credentials.aws_session_token or "localhost:9000"
         
-        logger.info(f"✅ Credenciales de MinIO cargadas")
+        logger.info(f" Credenciales de MinIO cargadas")
         
         # Cargar credenciales de Databricks
         databricks_credentials = await DatabricksCredentials.load(DATABRICKS_BLOCK_NAME)
-        logger.info(f"✅ Credenciales de Databricks cargadas")
+        logger.info(f" Credenciales de Databricks cargadas")
 
         # Configurar tarea de Notebook con parámetros (INCLUYE CREDENCIALES)
         notebook_task = NotebookTask(
@@ -67,6 +67,7 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
                 "minio_endpoint": minio_endpoint
             }
         )
+        logger.info(f" minio_endpoint = {minio_endpoint}")
 
         # Configurar settings del job (sin especificar cluster = usa serverless)
         job_task_settings = JobTaskSettings(
@@ -75,8 +76,8 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
             timeout_seconds=3600
         )
 
-        logger.info(f"🚀 Ejecutando notebook serverless: {DATABRICKS_NOTEBOOK_PATH}")
-        logger.info(f"📝 Parámetros: input={s3_input_path}, output={s3_output_path}")
+        logger.info(f" Ejecutando notebook serverless: {DATABRICKS_NOTEBOOK_PATH}")
+        logger.info(f" Parámetros: input={s3_input_path}, output={s3_output_path}")
         
         # Ejecutar el job en Databricks (usará serverless automáticamente)
         run_result = await jobs_runs_submit(
@@ -86,15 +87,15 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
         )
         
         run_id = run_result.get('run_id')
-        logger.info(f"✅ Job enviado exitosamente")
-        logger.info(f"📊 Run ID: {run_id}")
-        logger.info(f"🔗 Ver en Databricks: https://dbc-8613e21f-c701.cloud.databricks.com/#job/{run_id}")
-        logger.info(f"📦 Resultado estará en: {s3_output_path}")
+        logger.info(f" Job enviado exitosamente")
+        logger.info(f" Run ID: {run_id}")
+        logger.info(f" Ver en Databricks: https://dbc-8613e21f-c701.cloud.databricks.com/#job/{run_id}")
+        logger.info(f" Resultado estará en: {s3_output_path}")
         
         return PROCESSED_FILE_KEY
 
     except Exception as e:
-        logger.error(f"❌ Error al ejecutar el trabajo de Databricks: {e}")
+        logger.error(f" Error al ejecutar el trabajo de Databricks: {e}")
         raise e
 
 
@@ -111,12 +112,12 @@ async def flujo_procesamiento_databricks(minio_key_entrada: str):
     """
     logger = get_run_logger()
     
-    logger.info(f"🎯 Iniciando procesamiento serverless de: {minio_key_entrada}")
+    logger.info(f" Iniciando procesamiento serverless de: {minio_key_entrada}")
     
     processed_key = await ejecutar_spark_en_databricks(minio_key_entrada=minio_key_entrada)
     
-    logger.info(f"🎉 Procesamiento completado exitosamente")
-    logger.info(f"📦 Resultado en: s3://{MINIO_BUCKET_NAME}/{processed_key}")
+    logger.info(f" Procesamiento completado exitosamente")
+    logger.info(f" Resultado en: s3://{MINIO_BUCKET_NAME}/{processed_key}")
     
     return processed_key
 
