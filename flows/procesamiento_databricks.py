@@ -16,7 +16,7 @@ MINIO_BUCKET_NAME = "tendencias-reddit"
 PROCESSED_FILE_KEY = "processed/word_counts"
 
 # Ruta al script en Databricks Repos
-DATABRICKS_SCRIPT_PATH = "/Repos/tu_email_o_usuario/reddit-pipeline-repo/src/procesamiento_data.py"
+DATABRICKS_SCRIPT_PATH = "/Workspace/Users/diego.27luis@gmail.com/reddit-trends-pipeline/src/procesamiento_data.py"
 
 # Configuración del cluster
 CLUSTER_SPARK_VERSION = "13.3.x-scala2.12"
