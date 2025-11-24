@@ -48,7 +48,7 @@ async def ejecutar_spark_en_databricks(minio_key_entrada: str) -> str:
         # Obtener las credenciales
         minio_access_key = aws_credentials.aws_access_key_id
         minio_secret_key = aws_credentials.aws_secret_access_key.get_secret_value()
-        minio_endpoint = aws_credentials.aws_session_token or "https://therapist-champagne-mercury-bee.trycloudflare.com"
+        minio_endpoint = aws_credentials.aws_session_token or "therapist-champagne-mercury-bee.trycloudflare.com"
         
         logger.info(f" Credenciales de MinIO cargadas")
         
