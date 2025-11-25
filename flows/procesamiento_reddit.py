@@ -25,7 +25,7 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
     minio_access_key = aws_credentials.aws_access_key_id
     minio_secret_key = aws_credentials.aws_secret_access_key.get_secret_value()
     # El Cloudflare Tunnel Endpoint (ej: "therapist-champagne-mercury-bee.trycloudflare.com")
-    minio_endpoint = aws_credentials.aws_session_token 
+    minio_endpoint = "watts-inputs-prefers-annex.trycloudflare.com"
     
     # 2. Configurar y crear Spark Session
     # Necesitas los JARs de Hadoop/S3 (se asume que están en el entorno Prefect)

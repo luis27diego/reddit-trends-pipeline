@@ -3,7 +3,7 @@ from prefect.deployments import run_deployment
 import requests
 from prefect_aws.s3 import S3Bucket
 from prefect_aws import AwsCredentials
-from flows.procesamiento_reddit import flujo_procesamiento_local # Nuevo
+#from flows.procesamiento_reddit import flujo_procesamiento_local # Nuevo
 
 # --- CONFIGURACIÓN DE MINIO ---
 MINIO_BLOCK_NAME = "minio-data-storage"
