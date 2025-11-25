@@ -3,6 +3,7 @@ from prefect.deployments import run_deployment
 import requests
 from prefect_aws.s3 import S3Bucket
 from prefect_aws import AwsCredentials
+from flows.procesamiento_reddit import flujo_procesamiento_local # Nuevo
 
 # --- CONFIGURACIÓN DE MINIO ---
 MINIO_BLOCK_NAME = "minio-data-storage"
@@ -61,12 +62,12 @@ async def ejecutar_procesamiento(minio_key: str):
     """
     Ejecuta el flow de procesamiento de Databricks pasando la key del archivo.
     """
-    print(f" Iniciando procesamiento de Databricks para: {minio_key}")
+    print(f" Iniciando procesamiento de Spark Docker para: {minio_key}")
     
     try:
         # Ejecutar el deployment del flow de procesamiento
         flow_run = await run_deployment(
-            name="Flujo de Procesamiento de Palabras (Databricks)/reddit-processing-deployment",
+            name="Flujo de Procesamiento de Palabras (Local Docker Spark)/spark-local-processing-deployment",            
             parameters={"minio_key_entrada": minio_key},
             timeout=0  # Sin timeout, esperará indefinidamente
         )
