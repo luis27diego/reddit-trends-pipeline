@@ -7,7 +7,7 @@ MINIO_BLOCK_NAME = "minio-data-storage"
 MINIO_BUCKET_NAME = "tendencias-reddit"
 PROCESSED_FILE_KEY = "processed/word_counts"
 # Master de Spark en Docker (por nombre de servicio)
-SPARK_MASTER = "spark://localhost:7077" 
+SPARK_MASTER = "spark://spark-master:7077" 
 # Si el script se ejecutara desde otro contenedor Spark, usarías spark://spark-master:7077
 # Como Prefect se ejecuta fuera de Docker, usamos localhost
 # ----------------------------------------
@@ -32,6 +32,7 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
     spark = SparkSession.builder \
         .appName("RedditWordCountLocal") \
         .master(SPARK_MASTER) \
+        .config("spark.home", "/opt/spark") \
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk:1.12.597") \
         .config("fs.s3a.access.key", minio_access_key) \
         .config("fs.s3a.secret.key", minio_secret_key) \
