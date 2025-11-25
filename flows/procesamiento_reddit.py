@@ -37,6 +37,8 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
         .config("fs.s3a.secret.key", minio_secret_key) \
         .config("fs.s3a.endpoint", f"https://{minio_endpoint}") \
         .config("fs.s3a.path.style.access", "true") \
+        .config("spark.pyspark.python", "python3.11") \
+        .config("spark.pyspark.driver.python", "python3.11") \
         .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
         .getOrCreate()
     
