@@ -59,7 +59,7 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
         )
 
         logger.info(f" Escribiendo resultado en: {s3_output_path}")
-        word_counts.write.mode("overwrite").parquet(s3_output_path)
+        word_counts.write.mode("overwrite").csv(s3_output_path)
         
     except Exception as e:
         logger.error(f" Error de Spark: {e}")
