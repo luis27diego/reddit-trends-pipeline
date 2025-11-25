@@ -32,8 +32,7 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
     spark = SparkSession.builder \
         .appName("RedditWordCountLocal") \
         .master(SPARK_MASTER) \
-        .config("spark.home", "/opt/spark") \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk:1.12.597") \
+        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \
         .config("fs.s3a.access.key", minio_access_key) \
         .config("fs.s3a.secret.key", minio_secret_key) \
         .config("fs.s3a.endpoint", f"https://{minio_endpoint}") \
