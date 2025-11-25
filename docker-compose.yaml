@@ -1,4 +1,8 @@
 services:
+ # ---------------------------------
+ # ¡SERVICIO POSTGRES ELIMINADO!
+ # ---------------------------------
+
   minio:
     image: minio/minio:latest
     container_name: minio_storage
@@ -65,6 +69,45 @@ services:
       mkdir -p /opt/spark/logs &&
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
       spark://spark-master:7077
+      "
+
+  prefect-server:
+    image: prefecthq/prefect:3-latest 
+    container_name: prefect_server
+    hostname: prefect-server
+    ports:
+      - "4200:4200"
+    volumes:
+      # Añadir un volumen para mantener la base de datos SQLite persistente
+      - ./prefect_data:/root/.prefect
+    environment:
+      PREFECT_SERVER_API_HOST: "0.0.0.0"
+      PREFECT_API_URL: "http://prefect-server:4200/api" 
+      # ¡ELIMINADA! Ya no se necesita PREFECT_API_DATABASE_CONNECTION_URL
+      PREFECT_UI_API_URL: "http://127.0.0.1:4200/api" 
+    command: prefect server start --host 0.0.0.0
+    # ¡ELIMINADA! Ya no hay dependencia de postgres
+    restart: always
+
+  prefect-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker 
+    container_name: prefect_process_worker
+    volumes:
+      - ./flows:/app/flows 
+    environment:
+      SPARK_HOME: /opt/spark
+      # Esta URL de API sigue siendo válida ya que es la dirección interna
+      PREFECT_API_URL: http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+      - spark-master
+    restart: always
+    command: >
+      bash -c "
+      sleep 20 &&
+      prefect worker start --pool default
       "
 
 networks:

@@ -1,0 +1,30 @@
+# Usa una imagen base de Python
+FROM python:3.11-slim
+
+# --- INSTALACIÓN DE JAVA Y SPARK ---
+# 1. Instalar Java Development Kit (Necesario para PySpark Driver)
+RUN apt-get update && \
+    apt-get install -y default-jdk && \
+    # También necesitamos git para la etapa de pull de Prefect
+    apt-get install -y git && \ 
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 2. Configurar JAVA_HOME
+ENV JAVA_HOME /usr/lib/jvm/default-java
+
+# 3. Establecer el directorio de trabajo
+WORKDIR /app
+
+# 4. Copiar los archivos de código y requerimientos
+# 🚨 AJUSTE DE RUTA: Copiar requirements.txt desde deps/
+COPY deps/requirements.txt . 
+# Copiar todo el proyecto al contenedor
+COPY . /app 
+
+# 5. Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# --- CONFIGURACIÓN DE PREFECT ---
+# Se inicia el Worker de Prefect
+CMD ["prefect", "worker", "start", "--pool", "default-pool"]
