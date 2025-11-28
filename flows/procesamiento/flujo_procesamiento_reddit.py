@@ -1,7 +1,7 @@
 from prefect import flow
 from flows.procesamiento.tasks_procesamiento import procesar_archivo_grande
 
-@flow(name="Flujo de Procesamiento de Palabras (Escalable 100GB+)")
+@flow(name="Flujo de Procesamiento de Palabras (Local Docker Spark)/spark-local-processing-deployment")
 def flujo_procesamiento_grande(minio_key_entrada: str):
     print(f"Procesando archivo: {minio_key_entrada}")
     
