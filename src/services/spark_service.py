@@ -9,8 +9,6 @@ def create_spark_session():
         SparkSession.builder
         .appName(APP_NAME)
         .master(SPARK_MASTER_URL)
-        .config("spark.executor.memory", "1g")
-        .config("spark.executor.cores", "1")
         .getOrCreate()
     )
     return spark
