@@ -1,0 +1,7 @@
+# Ignorar la carpeta miniodata
+minio_data/
+
+# Ignorar la carpeta prefect data
+prefect_data/
+
+flows/__pycache__
