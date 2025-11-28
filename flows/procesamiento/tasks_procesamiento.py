@@ -1,59 +1,43 @@
-# flows/procesamiento/tasks_procesamiento.py  (reemplaza TODO el archivo)
 from prefect import task
-from pyspark.sql.functions import col
 from src.services.spark_service import create_spark_session
-from src.services.text_processing_service import procesar_texto_distribuido
-from src.config.minio_config import PROCESSED_FOLDER
-import os
+from src.services.io_service import leer_csv_optimizado, guardar_resultado
+from src.services.analytics_service import (
+    analizar_tendencia_temporal, 
+    extraer_temas_lda, 
+    validar_sentimiento
+)
 
-@task(cache_policy=None, log_prints=True)
+@task(log_prints=True)
 def procesar_archivo_grande(minio_key: str):
-    """
-    Procesa un archivo GIGANTE directamente desde MinIO usando Spark.
-    Nunca carga todo en memoria.
-    """
     spark = create_spark_session()
     
-    print(f"Leyendo archivo grande desde MinIO: {minio_key}")
+    # 1. Lectura
+    path_entrada = f"s3a://tendencias-reddit/{minio_key}"
+    print(f"--- Iniciando lectura optimizada de {path_entrada} ---")
+    df = leer_csv_optimizado(spark, path_entrada)
     
-    path = f"s3a://tendencias-reddit/{minio_key}"
+    # Persistimos en memoria si cabe, o en disco, porque usaremos el DF 3 veces
+    df.persist() 
+    print(f"Count inicial (rápido si schema es correcto): {df.count()}")
+
+    base_output = f"s3a://tendencias-reddit/processed/{minio_key.split('/')[-1]}"
+
+    # 2. Ejecutar Análisis 1: Tendencias
+    print("--- Ejecutando Análisis de Tendencias ---")
+    df_trends = analizar_tendencia_temporal(df)
+    guardar_resultado(df_trends, f"{base_output}/trends", formato="csv") # CSV es ok para resultados pequeños
+
+    # 3. Ejecutar Análisis 2: LDA
+    print("--- Ejecutando Topic Modeling ---")
+    df_topics = extraer_temas_lda(df)
+    guardar_resultado(df_topics, f"{base_output}/topics", formato="json")
+
+    # 4. Ejecutar Análisis 3: Validación
+    print("--- Ejecutando Validación de Modelo ---")
+    df_val = validar_sentimiento(df)
+    guardar_resultado(df_val, f"{base_output}/validation", formato="csv")
+
+    df.unpersist()
+    print("--- Procesamiento completado ---")
     
-    print(f"Leyendo archivo grande desde MinIO: {minio_key}")
-    
-    # LEER COMO CSV CORRECTAMENTE
-    df_raw = spark.read \
-        .option("header", "true") \
-        .option("inferSchema", "true") \
-        .option("multiLine", "true") \
-        .option("escape", "\"") \
-        .csv(path)
-    
-    print(f"Total filas leídas: {df_raw.count():,}")
-    
-    # Filtrar solo selftext no nulo y no vacío
-    df_text = df_raw.select("selftext") \
-        .na.drop() \
-        .filter(col("selftext") != "") \
-        .filter(col("selftext") != "[deleted]") \
-        .filter(col("selftext") != "[removed]")
-    
-    print(f"Filas con texto válido: {df_text.count():,}")
-    
-    # Procesamiento 100% distribuido
-    df_counts = procesar_texto_distribuido(df_text)
-    
-    # Nombre de salida
-    filename = os.path.basename(minio_key)
-    output_folder = f"{PROCESSED_FOLDER}/{filename}_wordcount"
-    
-    print(f"Guardando resultados particionados en: {output_folder}")
-    
-    (df_counts
-     .coalesce(12)  # 12 archivos de salida (fácil de leer después)
-     .write
-     .mode("overwrite")
-     .option("header", "true")
-     .csv(f"s3a://tendencias-reddit/{output_folder}"))
-    
-    print(f"Procesamiento completado: {output_folder}")
-    return output_folder
+    return base_output
