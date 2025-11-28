@@ -34,7 +34,7 @@ def procesar_archivo_grande(minio_key: str):
      .write
      .mode("overwrite")
      .option("header", "true")
-     .csv(f"s3a://reddit-bucket/{output_folder}"))
+     .csv(f"s3a://tendencias-reddit/{output_folder}"))
     
     print(f"Procesamiento completado: {output_folder}")
     return output_folder
