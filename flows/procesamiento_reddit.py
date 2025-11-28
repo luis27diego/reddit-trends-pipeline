@@ -8,6 +8,7 @@ MINIO_BLOCK_NAME = "minio-data-storage"
 MINIO_BUCKET_NAME = "tendencias-reddit"
 PROCESSED_FILE_KEY = "processed/word_counts"
 SPARK_MASTER = "spark://spark-master:7077"
+endpoint = "http://minio:9000"
 
 
 @task
@@ -16,8 +17,8 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
 
     # 1. Cargar credenciales del Bloque
     aws_credentials = await AwsCredentials.load(MINIO_BLOCK_NAME)
-    client_kwargs = aws_credentials.get_client_kwargs("s3")
-    endpoint = client_kwargs.get("endpoint_url")
+    #client_kwargs = aws_credentials.get_client_kwargs("s3")
+    #endpoint = client_kwargs.get("endpoint_url")
 
     access_key = aws_credentials.aws_access_key_id
     secret_key = aws_credentials.aws_secret_access_key.get_secret_value()
