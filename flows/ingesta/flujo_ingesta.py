@@ -14,7 +14,7 @@ async def flujo_ingesta(url="https://www.gutenberg.org/files/1342/1342-0.txt"):
     # Paso 2: procesamiento
     await run_deployment(
         name="Flujo de Procesamiento de Palabras (Local Docker Spark)/spark-local-processing-deployment",
-        parameters={"minio_key_entrada": minio_key},
+        parameters={"minio_key_entrada": 'the-reddit-covid-dataset-posts.csv'},
         timeout=0
     )
 

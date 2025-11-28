@@ -17,6 +17,14 @@ def procesar_archivo_grande(minio_key: str):
     
     # Leemos directamente desde MinIO como texto particionado
     df_raw = spark.read.text(f"s3a://tendencias-reddit/{minio_key}")
+    df_raw = df_raw.select("selftext").na.drop()  # Elimina filas con valores nulos
+    
+    # Unir todo el texto de la columna 'selftext' en un solo string
+    combined_text = df_raw.rdd.map(lambda row: row['selftext']).collect()
+    combined_text = "\n".join(combined_text)
+    
+    # Convertir el texto a bytes
+    df_raw = combined_text.encode('utf-8')
     
     print(f"Archivo leído. Filas aproximadas: {df_raw.count():,}")
     
