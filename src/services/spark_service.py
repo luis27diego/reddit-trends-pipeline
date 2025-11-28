@@ -9,6 +9,16 @@ def create_spark_session():
         SparkSession.builder
         .appName(APP_NAME)
         .master(SPARK_MASTER_URL)
+        .config("spark.driver.maxResultSize", "2g")    # importante para evitar OOM en collect()
+        # ---- Particiones agresivas (clave para baja memoria) ----
+        .config("spark.sql.shuffle.partitions", "400")     # muchas particiones = menos memoria por tarea
+        .config("spark.default.parallelism", "400")
+        .config("spark.sql.files.maxPartitionBytes", "64mb")   # particiones pequeñas
+        .config("spark.sql.adaptive.enabled", "true")         # Spark 3+ optimiza solo
+        .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
+        # ---- Optimizaciones para texto grande ----
+        .config("spark.rdd.compress", "true")
+        .config("spark.speculation", "false")
         .getOrCreate()
     )
     return spark

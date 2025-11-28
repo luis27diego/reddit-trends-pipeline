@@ -1,25 +1,17 @@
 from prefect import flow
-from flows.procesamiento.tasks_procesamiento import (
-    cargar_archivo_minio,
-    procesar_con_spark,
-    guardar_resultado_minio
-)
+from flows.procesamiento.tasks_procesamiento import procesar_archivo_grande
 
-@flow(name="Flujo de Procesamiento de Palabras (Local Docker Spark)")
-async def flujo_procesamiento_local(minio_key_entrada: str):
+@flow(name="Flujo de Procesamiento de Palabras (Escalable 100GB+)")
+def flujo_procesamiento_grande(minio_key_entrada: str):
     print(f"Procesando archivo: {minio_key_entrada}")
-
-    texto = await cargar_archivo_minio(minio_key_entrada)
     
-    df_resultado = procesar_con_spark(texto)
+    ruta_salida = procesar_archivo_grande.submit(minio_key_entrada).result()
+    
+    print(f"Archivo procesado y guardado en carpeta: {ruta_salida}")
+    print("Puedes ver los CSVs en MinIO dentro de esa carpeta (part-00000.csv, etc.)")
+    return ruta_salida
 
-    output_name = minio_key_entrada.split("/")[-1] + "_counts.csv"
-
-    ruta = await guardar_resultado_minio(df_resultado, output_name)
-
-    print(f"Archivo procesado guardado en: {ruta}")
-    return ruta
-
+# Para pruebas locales
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(flujo_procesamiento_local("raw/1342-0.txt"))
+    asyncio.run(flujo_procesamiento_grande("raw/1342-0.txt"))

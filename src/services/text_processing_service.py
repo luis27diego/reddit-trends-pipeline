@@ -1,15 +1,24 @@
-from pyspark.sql.functions import explode, split, col
+# src/services/text_processing_service.py  (reemplaza todo)
+from pyspark.sql.functions import explode, split, lower, regexp_replace, col
 
-def procesar_texto(df):
+def procesar_texto_distribuido(df_raw):
     """
-    Recibe un DataFrame con una columna 'text'
-    y retorna un DataFrame con conteo de palabras.
+    Recibe un DataFrame con columna 'value' (una línea por fila)
+    y devuelve conteo de palabras 100% distribuido.
     """
-    palabras = (
-        df.select(explode(split(col("text"), r"\W+")).alias("palabra"))
-        .where(col("palabra") != "")
-        .groupBy("palabra")
-        .count()
-        .orderBy(col("count").desc())
-    )
-    return palabras
+    return (df_raw
+            .select(
+                explode(
+                    split(
+                        regexp_replace(
+                            lower(col("value")), 
+                            r"[^a-záéíóúñüA-ZÁÉÍÓÚÑÜ0-9 ]", " "
+                        ),
+                        r"\s+"
+                    )
+                ).alias("palabra")
+            )
+            .where(col("palabra") != "")
+            .groupBy("palabra")
+            .count()
+            .orderBy(col("count").desc()))
