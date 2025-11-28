@@ -1,6 +1,7 @@
 from prefect import flow, task, get_run_logger
 from pyspark.sql import SparkSession
 from prefect_aws import AwsCredentials
+from prefect_aws.s3 import S3Bucket
 
 
 MINIO_BLOCK_NAME = "minio-data-storage"
@@ -15,13 +16,14 @@ async def ejecutar_spark_local(minio_key_entrada: str) -> str:
 
     # 1. Cargar credenciales del Bloque
     aws_credentials = await AwsCredentials.load(MINIO_BLOCK_NAME)
+    client_kwargs = aws_credentials.get_client_kwargs("s3")
+    endpoint = client_kwargs.get("endpoint_url")
 
     access_key = aws_credentials.aws_access_key_id
     secret_key = aws_credentials.aws_secret_access_key.get_secret_value()
 
     # ⚠️ Ahora el endpoint también sale del bloque
     # Prefect lo guarda en: `aws_credentials.endpoint_url`
-    endpoint = aws_credentials.endpoint_url.rstrip("/")  # evita doble slash
 
     logger.info(f" Usando MinIO endpoint del bloque: {endpoint}")
 
