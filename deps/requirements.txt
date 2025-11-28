@@ -1,1 +1,5 @@
 prefect
+prefect-github
+prefect-aws
+prefect-databricks
+pyspark==3.5.7

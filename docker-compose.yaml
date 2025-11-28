@@ -1,8 +1,4 @@
 services:
- # ---------------------------------
- # ¡SERVICIO POSTGRES ELIMINADO!
- # ---------------------------------
-
   minio:
     image: minio/minio:latest
     container_name: minio_storage
@@ -16,8 +12,14 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server --console-address :9001 /data
 
+  # -------------------------------------------------------
+  # 🚀 CAMBIO CLAVE: Usamos el Dockerfile.worker para Spark
+  # para garantizar Python 3.11 y los JARs de AWS
+  # -------------------------------------------------------
   spark-master:
-    image: spark:3.5.3
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     container_name: spark-master
     hostname: spark-master
     ports:
@@ -26,9 +28,9 @@ services:
     environment:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
+    # Sobrescribimos el CMD del Dockerfile para arrancar el Master
     command: >
       bash -c "
-      mkdir -p /opt/spark/logs &&
       /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
       --host spark-master
       --port 7077
@@ -36,7 +38,9 @@ services:
       "
 
   spark-worker-1:
-    image: spark:3.5.3
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     container_name: spark-worker-1
     hostname: spark-worker-1
     depends_on:
@@ -44,17 +48,21 @@ services:
     environment:
       - SPARK_WORKER_CORES=4
       - SPARK_WORKER_MEMORY=4g
+      # Apuntamos al Master
+      - SPARK_MASTER_URL=spark://spark-master:7077
     ports:
       - "18081:8081"
+    # Sobrescribimos el CMD del Dockerfile para arrancar el Worker
     command: >
       bash -c "
-      mkdir -p /opt/spark/logs &&
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
       spark://spark-master:7077
       "
 
   spark-worker-2:
-    image: spark:3.5.3
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     container_name: spark-worker-2
     hostname: spark-worker-2
     depends_on:
@@ -62,11 +70,11 @@ services:
     environment:
       - SPARK_WORKER_CORES=4
       - SPARK_WORKER_MEMORY=4g
+      - SPARK_MASTER_URL=spark://spark-master:7077
     ports:
       - "18082:8081"
     command: >
       bash -c "
-      mkdir -p /opt/spark/logs &&
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
       spark://spark-master:7077
       "
@@ -78,15 +86,12 @@ services:
     ports:
       - "4200:4200"
     volumes:
-      # Añadir un volumen para mantener la base de datos SQLite persistente
       - ./prefect_data:/root/.prefect
     environment:
       PREFECT_SERVER_API_HOST: "0.0.0.0"
       PREFECT_API_URL: "http://prefect-server:4200/api" 
-      # ¡ELIMINADA! Ya no se necesita PREFECT_API_DATABASE_CONNECTION_URL
       PREFECT_UI_API_URL: "http://127.0.0.1:4200/api" 
     command: prefect server start --host 0.0.0.0
-    # ¡ELIMINADA! Ya no hay dependencia de postgres
     restart: always
 
   prefect-worker:
@@ -98,15 +103,16 @@ services:
       - ./flows:/app/flows 
     environment:
       SPARK_HOME: /opt/spark
-      # Esta URL de API sigue siendo válida ya que es la dirección interna
       PREFECT_API_URL: http://prefect-server:4200/api
+      # Importante: Asegurar que el driver sepa su propia IP o hostname
+      SPARK_DRIVER_HOST: prefect-worker 
     depends_on:
       - prefect-server
       - spark-master
     restart: always
     command: >
       bash -c "
-      sleep 20 &&
+      sleep 10 &&
       prefect worker start --pool default
       "
 

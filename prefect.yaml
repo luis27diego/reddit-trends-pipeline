@@ -29,7 +29,7 @@ deployments:
   entrypoint: flows/ingesta_reddit.py:flujo_ingesta 
   parameters: {}
   work_pool:
-    name: default-pool
+    name: default
     work_queue_name: null
     job_variables: {}
   schedules:
@@ -38,21 +38,21 @@ deployments:
     timezone: UTC
     active: true
 
-# 🚨 NUEVO DEPLOYMENT: Reemplaza la ejecución de Databricks por Spark Local Dockerizado
+#  NUEVO DEPLOYMENT: Reemplaza la ejecución de Databricks por Spark Local Dockerizado
 - name: spark-local-processing-deployment
   version: null
   # Etiquetas actualizadas
   tags: ["spark", "procesamiento", "docker"] 
   concurrency_limit: null
   description: "Procesa archivos usando PySpark conectado a un clúster Spark Standalone en Docker."
-  # ➡️ IMPORTANTE: El 'entrypoint' ahora apunta al nuevo flow local
+  #  IMPORTANTE: El 'entrypoint' ahora apunta al nuevo flow local
   entrypoint: flows/procesamiento_reddit.py:flujo_procesamiento_local
   parameters:
     # Este valor por defecto solo se usa si se ejecuta manualmente. 
     # Cuando lo llama el flow de ingesta, se sobrescribe.
     minio_key_entrada: "raw/1342-0.txt"
   work_pool:
-    name: default-pool
+    name: default
     work_queue_name: null
     job_variables: {}
   schedules: []
