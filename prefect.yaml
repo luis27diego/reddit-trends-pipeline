@@ -46,7 +46,7 @@ deployments:
   concurrency_limit: null
   description: "Procesa archivos usando PySpark conectado a un clúster Spark Standalone en Docker."
   #  IMPORTANTE: El 'entrypoint' ahora apunta al nuevo flow local
-  entrypoint: flows/procesamiento_reddit.py:flujo_procesamiento_local
+  entrypoint: flows/procesamiento/flujo_procesamiento_reddit.py:flujo_procesamiento_local
   parameters:
     # Este valor por defecto solo se usa si se ejecuta manualmente. 
     # Cuando lo llama el flow de ingesta, se sobrescribe.
