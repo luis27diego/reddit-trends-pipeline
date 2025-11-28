@@ -1,6 +1,6 @@
 # flows/procesamiento/tasks_procesamiento.py  (reemplaza TODO el archivo)
 from prefect import task
-from pyparsing import col
+from pyspark.sql.functions import col
 from src.services.spark_service import create_spark_session
 from src.services.text_processing_service import procesar_texto_distribuido
 from src.config.minio_config import PROCESSED_FOLDER
