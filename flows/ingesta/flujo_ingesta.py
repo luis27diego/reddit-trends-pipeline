@@ -13,7 +13,7 @@ async def flujo_ingesta(url="https://www.gutenberg.org/files/1342/1342-0.txt"):
 
     # Paso 2: procesamiento
     await run_deployment(
-        name="Flujo de Procesamiento de Palabras (Local Docker Spark)/spark-local-processing-deployment",
+        name="Flujo de Procesamiento de Palabras (Local Docker Spark)",
         parameters={"minio_key_entrada": minio_key},
         timeout=0
     )
