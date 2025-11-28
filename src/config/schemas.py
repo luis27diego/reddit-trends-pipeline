@@ -1,7 +1,7 @@
 from pyspark.sql.types import StructType, StructField, StringType, LongType, DoubleType, BooleanType
 
 # Esquema CORREGIDO, siguiendo el orden del CSV original:
-REDDIT_SCHEMA_CORREGIDO = StructType([
+REDDIT_SCHEMA = StructType([
     StructField("type", StringType(), True),           # 1
     StructField("id", StringType(), True),             # 2
     StructField("subreddit.id", StringType(), True),   # 3
