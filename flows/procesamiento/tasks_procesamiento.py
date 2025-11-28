@@ -16,7 +16,7 @@ def procesar_archivo_grande(minio_key: str):
     print(f"Leyendo archivo grande desde MinIO: {minio_key}")
     
     # Leemos directamente desde MinIO como texto particionado
-    df_raw = spark.read.text(f"s3a://reddit-bucket/{minio_key}")
+    df_raw = spark.read.text(f"s3a://tendencias-reddit/{minio_key}")
     
     print(f"Archivo leído. Filas aproximadas: {df_raw.count():,}")
     
