@@ -15,7 +15,12 @@ def procesar_archivo_grande(minio_key: str):
     path_entrada = f"s3a://tendencias-reddit/{minio_key}"
     print(f"--- Iniciando lectura optimizada de {path_entrada} ---")
     df = leer_csv_optimizado(spark, path_entrada)
-    
+    # 1. Convierte a Pandas (solo para una muestra)
+    df_pandas = df.limit(10).toPandas() 
+
+    # 2. Imprime el DataFrame de Pandas
+    print("\n--- Muestra del DataFrame Procesado ---\n")
+    print(df_pandas.to_string())
     # Persistimos en memoria si cabe, o en disco, porque usaremos el DF 3 veces
     df.persist() 
     print(f"Count inicial (rápido si schema es correcto): {df.count()}")
@@ -25,6 +30,8 @@ def procesar_archivo_grande(minio_key: str):
     # 2. Ejecutar Análisis 1: Tendencias
     print("--- Ejecutando Análisis de Tendencias ---")
     df_trends = analizar_tendencia_temporal(df)
+    df_pandas = df_trends.limit(10).toPandas() 
+    print(df_pandas.to_string())
     guardar_resultado(df_trends, f"{base_output}/trends", formato="csv") # CSV es ok para resultados pequeños
 
     # 3. Ejecutar Análisis 2: LDA
