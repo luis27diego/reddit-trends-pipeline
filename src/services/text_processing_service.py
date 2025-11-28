@@ -1,18 +1,14 @@
 # src/services/text_processing_service.py  (reemplaza todo)
 from pyspark.sql.functions import explode, split, lower, regexp_replace, col
 
-def procesar_texto_distribuido(df_raw):
-    """
-    Recibe un DataFrame con columna 'value' (una línea por fila)
-    y devuelve conteo de palabras 100% distribuido.
-    """
-    return (df_raw
+def procesar_texto_distribuido(df_with_selftext):
+    return (df_with_selftext
             .select(
                 explode(
                     split(
                         regexp_replace(
-                            lower(col("value")), 
-                            r"[^a-záéíóúñüA-ZÁÉÍÓÚÑÜ0-9 ]", " "
+                            lower(col("selftext")),
+                            r"[^a-záéíóúñü\s]", " "
                         ),
                         r"\s+"
                     )

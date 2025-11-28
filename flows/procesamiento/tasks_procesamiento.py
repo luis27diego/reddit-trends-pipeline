@@ -1,5 +1,6 @@
 # flows/procesamiento/tasks_procesamiento.py  (reemplaza TODO el archivo)
 from prefect import task
+from pyparsing import col
 from src.services.spark_service import create_spark_session
 from src.services.text_processing_service import procesar_texto_distribuido
 from src.config.minio_config import PROCESSED_FOLDER
@@ -15,21 +16,31 @@ def procesar_archivo_grande(minio_key: str):
     
     print(f"Leyendo archivo grande desde MinIO: {minio_key}")
     
-    # Leemos directamente desde MinIO como texto particionado
-    df_raw = spark.read.text(f"s3a://tendencias-reddit/{minio_key}")
-    df_raw = df_raw.select("selftext").na.drop()  # Elimina filas con valores nulos
+    path = f"s3a://tendencias-reddit/{minio_key}"
     
-    # Unir todo el texto de la columna 'selftext' en un solo string
-    combined_text = df_raw.rdd.map(lambda row: row['selftext']).collect()
-    combined_text = "\n".join(combined_text)
+    print(f"Leyendo archivo grande desde MinIO: {minio_key}")
     
-    # Convertir el texto a bytes
-    df_raw = combined_text.encode('utf-8')
+    # LEER COMO CSV CORRECTAMENTE
+    df_raw = spark.read \
+        .option("header", "true") \
+        .option("inferSchema", "true") \
+        .option("multiLine", "true") \
+        .option("escape", "\"") \
+        .csv(path)
     
-    print(f"Archivo leído. Filas aproximadas: {df_raw.count():,}")
+    print(f"Total filas leídas: {df_raw.count():,}")
+    
+    # Filtrar solo selftext no nulo y no vacío
+    df_text = df_raw.select("selftext") \
+        .na.drop() \
+        .filter(col("selftext") != "") \
+        .filter(col("selftext") != "[deleted]") \
+        .filter(col("selftext") != "[removed]")
+    
+    print(f"Filas con texto válido: {df_text.count():,}")
     
     # Procesamiento 100% distribuido
-    df_counts = procesar_texto_distribuido(df_raw)
+    df_counts = procesar_texto_distribuido(df_text)
     
     # Nombre de salida
     filename = os.path.basename(minio_key)
