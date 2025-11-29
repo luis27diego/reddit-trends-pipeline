@@ -236,7 +236,7 @@ def encontrar_comentarios_extremos(df, limite=100):
         .filter(F.col("extremo_tipo") != "Normal")
         .select(
             "id",
-            "subreddit.name",
+            F.col("`subreddit.name`").alias("subreddit_name"),  # ✅ Backticks + alias
             "created_utc",
             "score",
             "sentiment",
