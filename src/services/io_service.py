@@ -20,7 +20,4 @@ def guardar_resultado(df, path_salida, formato="parquet", coalesce_a_uno=False):
     if coalesce_a_uno:
         df_salida = df.coalesce(1)
     
-    (df_salida.write
-        .mode("overwrite")
-        .format(formato)
-        .save(path_salida))
+    df_salida.write.option("header", "true").mode("overwrite").csv(path_salida)
