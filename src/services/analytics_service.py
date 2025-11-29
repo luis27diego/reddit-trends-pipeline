@@ -134,13 +134,13 @@ def analizar_patrones_temporales(df):
                     .when(F.col("dia_semana") == 5, "Jueves")
                     .when(F.col("dia_semana") == 6, "Viernes")
                     .otherwise("Sábado"))
-        .groupBy("hora", "nombre_dia")
+        .groupBy("dia_semana", "hora", "nombre_dia")  # ✅ Incluir dia_semana en el groupBy
         .agg(
             F.avg("score").alias("score_promedio"),
             F.count("*").alias("volumen"),
             F.avg("sentiment").alias("sentiment_promedio")
         )
-        .orderBy("dia_semana", "hora"))
+        .orderBy("dia_semana", "hora"))  # ✅ Ahora sí está disponible
 
 # --- Análisis 4: Top Palabras por Sentimiento ---
 def palabras_por_sentimiento(df, top_n=20):
