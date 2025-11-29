@@ -3,6 +3,7 @@ from pyspark.ml.feature import Tokenizer, StopWordsRemover, CountVectorizer
 from pyspark.ml.clustering import LDA
 from pyspark.ml import Pipeline
 from src.utils.text_cleaning import limpiar_columna_texto, convertir_timestamp
+from pyspark.sql.types import ArrayType, StringType
 
 # --- Análisis 1: Tendencias ---
 def analizar_tendencia_temporal(df):
@@ -22,35 +23,43 @@ def extraer_temas_lda(df, num_topics=5, max_iter=10):
     
     # 🎯 Ajustes para Inglés y Grandes Datos
     df_clean = df.filter(F.col("body").isNotNull()) \
-                 .withColumn("clean_text", F.lower(F.col("body")))
+                    .withColumn("clean_text", limpiar_columna_texto("body"))
     
     tokenizer = Tokenizer(inputCol="clean_text", outputCol="words")
     remover = StopWordsRemover(inputCol="words", outputCol="filtered")
+    remove_empty_tokens_udf = F.udf(lambda tokens: [t for t in tokens if t], ArrayType(StringType()))
     
-    # Aumentar minDF (ej. 50.0) para filtrar palabras raras y muy comunes
+  # 🎯 CountVectorizer: Aumentamos vocabulario, minDF (500) y añadimos el filtrado de tokens.
     cv = CountVectorizer(
-        inputCol="filtered", 
+        inputCol="final_filtered", 
         outputCol="features", 
-        vocabSize=2000, 
-        minDF=50.0 # Clave para temas más limpios en datos masivos
+        vocabSize=3000, # Aumentado a 3000 para mayor detalle
+        minDF=500.0     # Asegura la aparición en al menos 500 documentos
     )
     
-    # 🎯 Optimizador 'online' para mejor rendimiento en datasets grandes
-    lda = LDA(k=num_topics, maxIter=max_iter, featuresCol="features", optimizer="online") 
+    # LDA: Optimizador 'online' para masivos y 30 iteraciones para convergencia
+    lda = LDA(k=num_topics, maxIter=max_iter, featuresCol="features", optimizer="online")
     
-    pipeline = Pipeline(stages=[tokenizer, remover, cv, lda])
+    pipeline = Pipeline(stages=[
+            tokenizer, 
+            remover, 
+            F.withColumn("final_filtered", remove_empty_tokens_udf(F.col("filtered"))), # Nuevo paso
+            cv, 
+            lda
+        ])
     model = pipeline.fit(df_clean)
     
     # --- 2. Extracción del Vocabulario y los Temas ---
     
     # 2.1. Obtener el vocabulario del CountVectorizer
     # El modelo de CountVectorizer está en la tercera posición del pipeline (índice 2)
-    cv_model = model.stages[2]
-    vocab = cv_model.vocabulary # Lista de palabras (índice -> palabra)
+    #3.1. Obtener el vocabulario del CountVectorizer (índice 3 en el nuevo pipeline)
+    cv_model = model.stages[3]
+    vocab = cv_model.vocabulary
     
-    # 2.2. Obtener los temas del modelo LDA
-    lda_model = model.stages[3]
-    topics_df = lda_model.describeTopics(maxTermsPerTopic=15)
+    # 3.2. Obtener los temas del modelo LDA (índice 4 en el nuevo pipeline)
+    lda_model = model.stages[4]
+    topics_df = lda_model.describeTopics(maxTermsPerTopic=20) # Aumentado a 20 términos
     
     # --- 3. Mapeo de Índices a Palabras (La Clave) ---
     
@@ -82,7 +91,7 @@ def extraer_temas_lda(df, num_topics=5, max_iter=10):
     # Convertir el DataFrame de Spark completo a JSON para el resultado final
     # Usamos .collect() solo si la tabla de temas es pequeña (que lo es, 10 temas x 15 palabras)
     # y luego convertimos a JSON
-    return final_topics.toPandas().to_json(orient='records')
+    return final_topics
 
 # --- Análisis 3: Validación ---
 def validar_sentimiento(df):
