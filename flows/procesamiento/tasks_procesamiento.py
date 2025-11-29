@@ -13,7 +13,7 @@ from src.services.analytics_service import (
 )
 
 @task(log_prints=True)
-def procesar_analisis_completo(minio_key: str):
+def procesar_archivo_grande(minio_key: str):
     spark = create_spark_session()
     
     # 1. Lectura
