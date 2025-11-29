@@ -17,7 +17,7 @@ def procesar_archivo_grande(minio_key: str):
     spark = create_spark_session()
     
     # 1. Lectura
-    path_entrada = f"s3a://tendencias-reddit/raw/{minio_key}"
+    path_entrada = f"s3a://tendencias-reddit/{minio_key}"
     print(f"--- Iniciando lectura de {path_entrada} ---")
     df = leer_csv_optimizado(spark, path_entrada)
     df.persist()
