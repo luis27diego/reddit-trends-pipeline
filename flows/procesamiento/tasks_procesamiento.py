@@ -37,7 +37,7 @@ def procesar_archivo_grande(minio_key: str):
     # 3. Ejecutar Análisis 2: LDA
     print("--- Ejecutando Topic Modeling ---")
     df_topics = extraer_temas_lda(df)
-    guardar_resultado(df_topics, f"{base_output}/topics", formato="json")
+    guardar_resultado(df_topics, f"{base_output}/topics", formato="json", coalesce_a_uno=True) # JSON para mejor legibilidad
 
     # 4. Ejecutar Análisis 3: Validación
     print("--- Ejecutando Validación de Modelo ---")
