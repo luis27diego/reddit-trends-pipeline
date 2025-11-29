@@ -112,7 +112,7 @@ def analizar_controversia_por_subreddit(df):
                     .when((F.col("score") > 20) & (F.col("sentiment") > 0.5), "Viral Positivo")
                     .when(F.abs(F.col("sentiment")) < 0.2, "Neutral")
                     .otherwise("Normal"))
-        .groupBy("subreddit.name", "tipo_contenido")
+        .groupBy("`subreddit.name`", "tipo_contenido")
         .agg(
             F.count("*").alias("cantidad"),
             F.avg("score").alias("score_promedio"),
@@ -187,7 +187,7 @@ def detectar_picos_actividad(df, ventana_horas=24):
 # --- Análisis 6: Comparativa Entre Subreddits ---
 def comparar_subreddits(df):
     return (df
-        .groupBy("subreddit.name")
+        .groupBy("`subreddit.name`")
         .agg(
             F.count("*").alias("total_comentarios"),
             F.avg("sentiment").alias("sentiment_promedio"),
