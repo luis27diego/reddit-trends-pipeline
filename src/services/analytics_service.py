@@ -193,7 +193,7 @@ def comparar_subreddits(df):
             F.avg("sentiment").alias("sentiment_promedio"),
             F.stddev("sentiment").alias("sentiment_std"),
             F.avg("score").alias("score_promedio"),
-            F.sum(F.when(F.col("subreddit.nsfw") == True, 1).otherwise(0)).alias("contenido_nsfw"),
+            F.sum(F.when(F.col("`subreddit.nsfw`") == True, 1).otherwise(0)).alias("contenido_nsfw"),
             F.min(convertir_timestamp("created_utc")).alias("primer_comentario"),
             F.max(convertir_timestamp("created_utc")).alias("ultimo_comentario")
         )
