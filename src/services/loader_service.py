@@ -14,7 +14,7 @@ DB_PASS = os.getenv("POSTGRES_PASSWORD", "prefect")
 DB_HOST = os.getenv("POSTGRES_HOST", "postgres") # Nombre del servicio en docker-compose
 DB_PORT = "5432"
 DB_NAME = "reddit_analytics"
-
+SPARK_NESTED_FOLDER = "the-reddit-climate-change-dataset-comments"
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 engine = create_engine(DATABASE_URL)
 
@@ -75,8 +75,7 @@ def cargar_resultados_a_db(rutas_spark: dict):
         base_path = rutas_spark[categoria].replace("s3a://", "s3://")
         
         # Leemos todos los CSVs dentro de la carpeta particionada de Spark (*)
-        full_path = f"{base_path}{subcarpeta}/*.csv"
-        
+        full_path = f"{base_path}{subcarpeta}/{SPARK_NESTED_FOLDER}/*.csv"        
         logger.info(f"\n→ Procesando tabla '{tabla}'. Leyendo de: {full_path}")
         
         try:
