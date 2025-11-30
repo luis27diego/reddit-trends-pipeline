@@ -56,3 +56,15 @@ deployments:
     work_queue_name: null
     job_variables: {}
   schedules: []
+- name: carga-bd-deployment
+  version: null
+  tags: ["ETL", "carga", "bd"]
+  concurrency_limit: null
+  description: "Orquesta el procesamiento con Spark y la carga en la base de datos."
+  entrypoint: flows/carga_bd/flujo_carga_bd.py:flujo_principal_etl
+  parameters: {}
+  work_pool:
+    name: default
+    work_queue_name: null
+    job_variables: {}
+  schedules: []
