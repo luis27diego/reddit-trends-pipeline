@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 import os
 from prefect import get_run_logger
 
-from services.io_service import leer_csv_optimizado
-from services.spark_service import create_spark_session
+from src.services.io_service import leer_csv_optimizado
+from src.services.spark_service import create_spark_session
 
 # --- 1. Configuración de Conexión ---
 
