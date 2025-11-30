@@ -1,10 +1,12 @@
 # src/services/loader_service.py
 
 import pandas as pd
-import s3fs
 from sqlalchemy import create_engine
 import os
 from prefect import get_run_logger
+
+from services.io_service import leer_csv_optimizado
+from services.spark_service import create_spark_session
 
 # --- 1. Configuración de Conexión ---
 
@@ -18,15 +20,32 @@ SPARK_NESTED_FOLDER = "the-reddit-climate-change-dataset-comments"
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 engine = create_engine(DATABASE_URL)
 
-# Conexión a MinIO (usando credenciales internas del docker-compose)
-storage_options = {
-    "key": os.getenv("MINIO_ROOT_USER", "minioadmin"),
-    "secret": os.getenv("MINIO_ROOT_PASSWORD", "minioadmin"),
-    "client_kwargs": {
-        "endpoint_url": "http://minio:9000" # URL interna de la red Docker
-    }
-}
 
+def leer_resultado_spark_a_pandas(rutas_spark: dict, categoria: str, subcarpeta: str) -> pd.DataFrame:
+    """
+    Crea una sesión Spark (local), lee los CSV agregados desde MinIO/S3A, 
+    y retorna el resultado como un Pandas DataFrame.
+    """
+    spark = create_spark_session()
+    
+    # Construir la ruta final de salida de Spark (S3A)
+    base_path_s3a = rutas_spark[categoria]
+    
+    # La ruta completa que Spark necesita para leer los archivos
+    full_path_s3a = f"{base_path_s3a}{subcarpeta}/{SPARK_NESTED_FOLDER}"
+    
+    print(f"Spark leyendo de: {full_path_s3a}")
+    
+    # Spark lee directamente la carpeta particionada
+    df_spark = leer_csv_optimizado(spark, full_path_s3a)
+    print(f"   → Datos leídos con Spark. Número de filas: {df_spark.count()}")
+    
+    # Conversión eficiente a Pandas (asumiendo que el resultado es pequeño después de la agregación)
+    df_pandas = df_spark.toPandas()
+    
+    spark.stop() # Detener la sesión de Spark
+    return df_pandas
+    
 # --- 2. Funciones de Carga ---
 
 def limpiar_y_cargar(df: pd.DataFrame, table_name: str, if_exists: str = 'replace'):
@@ -50,6 +69,14 @@ def limpiar_y_cargar(df: pd.DataFrame, table_name: str, if_exists: str = 'replac
 
 
 def cargar_resultados_a_db(rutas_spark: dict):
+
+    rutas_spark = {
+    'temporal': 's3a://tendencias-reddit/analytics/temporal/',
+    'sentiment': 's3a://tendencias-reddit/analytics/sentiment/',
+    'engagement': 's3a://tendencias-reddit/analytics/engagement/',
+    'text': 's3a://tendencias-reddit/analytics/text/',
+    'reports': 's3a://tendencias-reddit/reports/'
+}
     """
     Orquesta la lectura de los resultados de análisis de MinIO y los carga a la BD.
     
@@ -71,21 +98,17 @@ def cargar_resultados_a_db(rutas_spark: dict):
     ]
 
     for categoria, subcarpeta, tabla, if_exists in mapa_carga:
-        # Reemplazamos s3a:// por s3:// (pandas/s3fs solo soporta s3://)
-        base_path = rutas_spark[categoria].replace("s3a://", "s3://")
-        
-        # Leemos todos los CSVs dentro de la carpeta particionada de Spark (*)
-        full_path = f"{base_path}{subcarpeta}/*/*.csv"        
-        logger.info(f"\n→ Procesando tabla '{tabla}'. Leyendo de: {full_path}")
+        logger.info(f"\n→ Procesando tabla '{tabla}'. Leyendo con Spark...")
         
         try:
-            df = pd.read_csv(full_path, storage_options=storage_options)
-            print(df)
+            # 🟢 CAMBIO CLAVE: Usamos la función que invoca a Spark para leer el S3A
+            # Spark maneja la complejidad de S3A y la estructura de carpetas.
+            df = leer_resultado_spark_a_pandas(rutas_spark, categoria, subcarpeta)
+            
+            # Una vez que tenemos el df en Pandas, usamos la función de guardado existente
             limpiar_y_cargar(df, tabla, if_exists)
             
-        except FileNotFoundError:
-            logger.warning(f"   [SKIP] Archivos no encontrados en {full_path}. El análisis de Spark pudo haber omitido generarlos.")
         except Exception as e:
-            logger.error(f"   [FALLO CRÍTICO] Error general al cargar la tabla {tabla}: {e}")
-            # Puedes usar 'raise' aquí si quieres que el flow falle, o 'pass' si prefieres la robustez.
+            # La excepción podría ser FileNotFoundError si Spark no encuentra el path S3A.
+            logger.error(f"   [FALLO CRÍTICO] Error al leer con Spark o cargar la tabla {tabla}: {e}")
             pass
