@@ -75,7 +75,7 @@ def cargar_resultados_a_db(rutas_spark: dict):
         base_path = rutas_spark[categoria].replace("s3a://", "s3://")
         
         # Leemos todos los CSVs dentro de la carpeta particionada de Spark (*)
-        full_path = f"{base_path}{subcarpeta}/{SPARK_NESTED_FOLDER}/*.csv"        
+        full_path = f"{base_path}{subcarpeta}/*/*.csv"        
         logger.info(f"\n→ Procesando tabla '{tabla}'. Leyendo de: {full_path}")
         
         try:
