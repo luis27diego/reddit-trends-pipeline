@@ -81,6 +81,7 @@ def cargar_resultados_a_db(rutas_spark: dict):
         
         try:
             df = pd.read_csv(full_path, storage_options=storage_options)
+            print(df)
             limpiar_y_cargar(df, tabla, if_exists)
             
         except FileNotFoundError:
