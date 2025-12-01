@@ -11,7 +11,17 @@ def leer_csv_optimizado(spark, path):
             .option("multiLine", "true") # Necesario para saltos de línea en comentarios
             .option("escape", "\"")
             .csv(path))
-
+def leer_csv_resultado(spark, path):
+    """
+    Lee archivos de resultado de Spark (que son más pequeños) 
+    y permite inferir el esquema o usar el encabezado.
+    """
+    # NO USAMOS .schema() aquí, dejamos que Spark infiera
+    return (spark.read
+            .option("header", "true") 
+            .option("multiLine", "true")
+            .option("escape", "\"")
+            .csv(path))
 def guardar_resultado(df, path_salida, formato="parquet", coalesce_a_uno=False):
 
     df_salida = df

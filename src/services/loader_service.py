@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 import os
 from prefect import get_run_logger
 
-from src.services.io_service import leer_csv_optimizado
+from src.services.io_service import leer_csv_resultado
 from src.services.spark_service import create_spark_session
 
 # --- 1. Configuración de Conexión ---
@@ -37,7 +37,7 @@ def leer_resultado_spark_a_pandas(rutas_spark: dict, categoria: str, subcarpeta:
     print(f"Spark leyendo de: {full_path_s3a}")
     
     # Spark lee directamente la carpeta particionada
-    df_spark = leer_csv_optimizado(spark, full_path_s3a)
+    df_spark = leer_csv_resultado(spark, full_path_s3a)
     print(f"   → Datos leídos con Spark. Número de filas: {df_spark.count()}")
     
     # Conversión eficiente a Pandas (asumiendo que el resultado es pequeño después de la agregación)
