@@ -104,7 +104,7 @@ def cargar_resultados_a_db(rutas_spark: dict):
             # 🟢 CAMBIO CLAVE: Usamos la función que invoca a Spark para leer el S3A
             # Spark maneja la complejidad de S3A y la estructura de carpetas.
             df = leer_resultado_spark_a_pandas(rutas_spark, categoria, subcarpeta)
-            
+            print(df.head())
             # Una vez que tenemos el df en Pandas, usamos la función de guardado existente
             limpiar_y_cargar(df, tabla, if_exists)
             
