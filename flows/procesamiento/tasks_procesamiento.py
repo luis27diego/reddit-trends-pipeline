@@ -1,29 +1,28 @@
 from prefect import task
-from src.services.spark_service import create_spark_session
-from src.services.io_service import leer_csv_optimizado, guardar_resultado
-from src.services.analytics_service import (
-    analizar_tendencia_temporal,
-    analizar_patrones_temporales,
-    detectar_picos_actividad,
-    palabras_por_sentimiento,
-    analizar_controversia_por_subreddit,
-    analizar_sentiment_vs_score,
-    comparar_subreddits,
-    encontrar_comentarios_extremos
-)
+from src.infrastructure.spark.session import create_spark_session
+from src.infrastructure.spark.io_operations import leer_csv_optimizado, guardar_resultado
+from src.services.analytics.trends import analizar_tendencia_temporal, analizar_patrones_temporales
+from src.services.analytics.anomalies import detectar_picos_actividad
+from src.services.analytics.text_analysis import palabras_por_sentimiento
+from src.services.analytics.engagement import analizar_controversia_por_subreddit
+from src.services.analytics.sentiment import analizar_sentiment_vs_score, encontrar_comentarios_extremos
+from src.services.analytics.reporting import comparar_subreddits
 
 @task(log_prints=True)
 def procesar_archivo_grande(minio_key: str):
     spark = create_spark_session()
     
     # 1. Lectura
-    path_entrada = f"s3a://tendencias-reddit/{minio_key}"
+    # 1. Lectura
+    from src.config.settings import settings
+    path_entrada = f"s3a://{settings.MINIO_BUCKET_NAME}/{minio_key}"
     print(f"--- Iniciando lectura de {path_entrada} ---")
     df = leer_csv_optimizado(spark, path_entrada)
     df.persist()
     
     # Base para todas las salidas
-    base_output = "s3a://tendencias-reddit/analytics"
+    # Base para todas las salidas
+    base_output = f"s3a://{settings.MINIO_BUCKET_NAME}/analytics"
     nombre_archivo = minio_key.split('/')[-1].replace('.csv', '')
     
     # ======================
@@ -119,7 +118,7 @@ def procesar_archivo_grande(minio_key: str):
     df_comparativa = comparar_subreddits(df)
     guardar_resultado(
         df_comparativa,
-        f"s3a://tendencias-reddit/reports/subreddit_comparativa/{nombre_archivo}",
+        f"s3a://{settings.MINIO_BUCKET_NAME}/reports/subreddit_comparativa/{nombre_archivo}",
         formato="csv",
         coalesce_a_uno=True
     )
@@ -132,5 +131,5 @@ def procesar_archivo_grande(minio_key: str):
         "sentiment": f"{base_output}/sentiment/",
         "engagement": f"{base_output}/engagement/",
         "text": f"{base_output}/text/",
-        "reports": "s3a://tendencias-reddit/reports/"
+        "reports": f"s3a://{settings.MINIO_BUCKET_NAME}/reports/"
     }

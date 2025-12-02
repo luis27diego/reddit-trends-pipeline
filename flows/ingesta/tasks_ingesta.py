@@ -1,7 +1,7 @@
 from prefect import task
-from src.services.minio_service import get_minio_bucket, file_exists, upload_file
-from src.services.http_downloader import download_file
-from src.config.minio_config import RAW_FOLDER
+from src.infrastructure.storage.minio_client import get_minio_bucket, file_exists, upload_file
+from src.infrastructure.http.client import download_file
+from src.config.settings import settings
 
 @task
 def crear_directorio():
@@ -10,7 +10,7 @@ def crear_directorio():
 @task(retries=1, retry_delay_seconds=10)
 async def descargar_reddit_dump(url: str):
     file_name = url.split("/")[-1]
-    key = f"{RAW_FOLDER}/{file_name}"
+    key = f"{settings.RAW_FOLDER}/{file_name}"
 
     bucket = await get_minio_bucket()
 
