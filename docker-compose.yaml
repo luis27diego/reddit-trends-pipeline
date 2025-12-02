@@ -88,11 +88,14 @@ services:
       POSTGRES_DB: prefect
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U prefect"]
       interval: 5s
       timeout: 5s
       retries: 5
+    ports:
+      - "5432:5432"
 
   prefect-server:
     image: prefecthq/prefect:3-latest 
@@ -134,8 +137,44 @@ services:
       sleep 10 &&
       prefect worker start --pool default
       "
+  # 1. Tu API de Python (FastAPI)
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api  # Crearemos este archivo en un momento
+    container_name: reddit_api
+    ports:
+      - "8000:8000"
+    environment:
+      # Conexión a la base 'reddit_analytics'
+      DATABASE_URL: "postgresql://prefect:prefect@postgres:5432/reddit_analytics"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src  # Hot-reload para desarrollo
+
+  # 2. Metabase (Tu BI Visual)
+  metabase:
+    image: metabase/metabase:latest
+    container_name: reddit_bi
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase_appdb 
+      MB_DB_PORT: 5432
+      MB_DB_USER: prefect
+      MB_DB_PASS: prefect
+      MB_DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - metabase_data:/metabase-data
 volumes:
   postgres_data:
+  metabase_data:
 
 networks:
   default:

@@ -5,3 +5,10 @@ minio_data/
 prefect_data/
 
 flows/__pycache__
+src/services/__pycache__
+flows/ingesta/__pycache__
+flows/carga_bd/__pycache__
+flows/procesamiento/__pycache__
+src/api/__pycache__
+src/config/__pycache__
+src/utils/__pycache__
