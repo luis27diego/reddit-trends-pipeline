@@ -8,8 +8,8 @@ services:
     volumes:
       - ./minio_data:/data
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server --console-address :9001 /data
 
   # -------------------------------------------------------
@@ -46,17 +46,17 @@ services:
     depends_on:
       - spark-master
     environment:
-      - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4g
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
       # Apuntamos al Master
-      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL}
     ports:
       - "18081:8081"
     # Sobrescribimos el CMD del Dockerfile para arrancar el Worker
     command: >
       bash -c "
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
-      spark://spark-master:7077
+      ${SPARK_MASTER_URL}
       "
 
   spark-worker-2:
@@ -68,29 +68,29 @@ services:
     depends_on:
       - spark-master
     environment:
-      - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4g
-      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL}
     ports:
       - "18082:8081"
     command: >
       bash -c "
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
-      spark://spark-master:7077
+      ${SPARK_MASTER_URL}
       "
 
   postgres:
     image: postgres:15
     container_name: prefect_postgres
     environment:
-      POSTGRES_USER: prefect
-      POSTGRES_PASSWORD: prefect
-      POSTGRES_DB: prefect
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prefect"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -107,10 +107,10 @@ services:
       - ./prefect_data:/root/.prefect
     environment:
       PREFECT_SERVER_API_HOST: "0.0.0.0"
-      PREFECT_API_URL: "http://prefect-server:4200/api" 
-      PREFECT_UI_API_URL: "http://127.0.0.1:4200/api"
+      PREFECT_API_URL: ${PREFECT_API_URL}
+      PREFECT_UI_API_URL: ${PREFECT_UI_API_URL}
       # Conexión a PostgreSQL
-      PREFECT_API_DATABASE_CONNECTION_URL: "postgresql+asyncpg://prefect:prefect@postgres:5432/prefect"
+      PREFECT_API_DATABASE_CONNECTION_URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -126,8 +126,18 @@ services:
       - ./flows:/app/flows 
     environment:
       SPARK_HOME: /opt/spark
-      PREFECT_API_URL: http://prefect-server:4200/api
-      SPARK_DRIVER_HOST: prefect-worker 
+      PREFECT_API_URL: ${PREFECT_API_URL}
+      SPARK_DRIVER_HOST: prefect-worker
+      SPARK_MASTER_URL: ${SPARK_MASTER_URL}
+      # MinIO credentials for Spark sessions
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      # Database credentials
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
     depends_on:
       - prefect-server
       - spark-master
@@ -147,7 +157,7 @@ services:
       - "8000:8000"
     environment:
       # Conexión a  la base 'reddit_analytics'
-      DATABASE_URL: "postgresql://prefect:prefect@postgres:5432/reddit_analytics"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/reddit_analytics"
     depends_on:
       postgres:
         condition: service_healthy
@@ -164,8 +174,8 @@ services:
       MB_DB_TYPE: postgres
       MB_DB_DBNAME: metabase_appdb 
       MB_DB_PORT: 5432
-      MB_DB_USER: prefect
-      MB_DB_PASS: prefect
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
       MB_DB_HOST: postgres
     depends_on:
       postgres:

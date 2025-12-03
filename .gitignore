@@ -3,6 +3,7 @@ minio_data/
 
 # Ignorar la carpeta prefect data
 prefect_data/
+.env
 
 flows/__pycache__
 src/services/__pycache__
