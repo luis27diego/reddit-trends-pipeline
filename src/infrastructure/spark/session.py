@@ -16,9 +16,9 @@ def create_spark_session():
         .config("spark.speculation", "false")
         
         #Configuración MinIO
-        .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.endpoint", settings.MINIO_ENDPOINT)
+        .config("spark.hadoop.fs.s3a.access.key", settings.MINIO_ACCESS_KEY)
+        .config("spark.hadoop.fs.s3a.secret.key", settings.MINIO_SECRET_KEY)
         
         # --- SOLUCIÓN DEL ERROR 403 ---
         # 1. Fuerza el uso de las claves definidas arriba, ignora variables de entorno
