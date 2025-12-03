@@ -1,10 +1,13 @@
-# Usa una imagen base de Python
+# ============================================================
+# BASE IMAGE: Spark + Java + Python
+# Used by both Spark nodes and Prefect worker
+# ============================================================
 FROM python:3.11-slim
 
 # --- INSTALACIÓN DE JAVA Y SPARK ---
-# 1. Instalar Java, wget y git
+# 1. Instalar Java, wget y herramientas esenciales
 RUN apt-get update && \
-    apt-get install -y default-jdk wget git curl && \
+    apt-get install -y default-jdk wget curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -22,10 +25,14 @@ RUN wget -q https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SP
 
 # --- 🚨 PASO CRÍTICO: PRE-INSTALAR JARS DE AWS/HADOOP ---
 # Esto evita que Spark intente descargarlos en tiempo de ejecución y falle
+ENV HADOOP_AWS_VERSION=3.3.4
+ENV AWS_SDK_VERSION=1.12.262
+ENV WILDFLY_OPENSSL_VERSION=1.0.7.Final
+
 WORKDIR /opt/spark/jars
-RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar && \
-    wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar && \
-    wget https://repo1.maven.org/maven2/org/wildfly/openssl/wildfly-openssl/1.0.7.Final/wildfly-openssl-1.0.7.Final.jar
+RUN wget -q https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_AWS_VERSION}/hadoop-aws-${HADOOP_AWS_VERSION}.jar && \
+    wget -q https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VERSION}/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar && \
+    wget -q https://repo1.maven.org/maven2/org/wildfly/openssl/wildfly-openssl/${WILDFLY_OPENSSL_VERSION}/wildfly-openssl-${WILDFLY_OPENSSL_VERSION}.jar
 
 # 4. Configurar variables de entorno de Spark
 ENV SPARK_HOME=/opt/spark
@@ -35,12 +42,5 @@ ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9.7-src.zip:$
 # 5. Establecer el directorio de trabajo
 WORKDIR /app
 
-# 6. Copiar los archivos de código y requerimientos
-COPY deps/requirements.txt . 
-COPY . /app 
-
-# 7. Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt
-
-# --- CONFIGURACIÓN DE PREFECT ---
-CMD ["prefect", "worker", "start", "--pool", "default-pool"]
+# Default CMD (will be overridden by specific services)
+CMD ["/bin/bash"]

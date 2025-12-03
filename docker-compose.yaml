@@ -13,13 +13,13 @@ services:
     command: server --console-address :9001 /data
 
   # -------------------------------------------------------
-  # 🚀 CAMBIO CLAVE: Usamos el Dockerfile.worker para Spark
+  # 🚀 CAMBIO CLAVE: Usamos el docker/worker/Dockerfile para Spark
   # para garantizar Python 3.11 y los JARs de AWS
   # -------------------------------------------------------
   spark-master:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: docker/worker/Dockerfile
     container_name: spark-master
     hostname: spark-master
     ports:
@@ -40,7 +40,7 @@ services:
   spark-worker-1:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: docker/worker/Dockerfile
     container_name: spark-worker-1
     hostname: spark-worker-1
     depends_on:
@@ -62,7 +62,7 @@ services:
   spark-worker-2:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: docker/worker/Dockerfile
     container_name: spark-worker-2
     hostname: spark-worker-2
     depends_on:
@@ -88,7 +88,7 @@ services:
       POSTGRES_DB: prefect
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./sql/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U prefect"]
       interval: 5s
@@ -120,7 +120,7 @@ services:
   prefect-worker:
     build:
       context: .
-      dockerfile: Dockerfile.worker 
+      dockerfile: docker/worker/Dockerfile 
     container_name: prefect_process_worker
     volumes:
       - ./flows:/app/flows 
@@ -141,12 +141,12 @@ services:
   api:
     build: 
       context: .
-      dockerfile: Dockerfile.api  # Crearemos este archivo en un momento
+      dockerfile: docker/api/Dockerfile
     container_name: reddit_api
     ports:
       - "8000:8000"
     environment:
-      # Conexión a la base 'reddit_analytics'
+      # Conexión a  la base 'reddit_analytics'
       DATABASE_URL: "postgresql://prefect:prefect@postgres:5432/reddit_analytics"
     depends_on:
       postgres:
