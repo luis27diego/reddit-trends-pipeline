@@ -5,7 +5,7 @@ from flows.ingesta.tasks_ingesta import crear_directorio, descargar_reddit_dump
 @flow(name="Flujo de Ingesta de Reddit")
 async def flujo_ingesta(url="https://www.gutenberg.org/files/1342/1342-0.txt"):
     
-    crear_directorio()
+    #crear_directorio()
 
     # Paso 1: descarga
     minio_key = await descargar_reddit_dump('pavellexyr/the-reddit-climate-change-dataset', 'the-reddit-climate-change-dataset-comments.csv')
