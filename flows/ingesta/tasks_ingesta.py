@@ -20,10 +20,5 @@ async def descargar_reddit_dump(dataset_slug: str = "pavellexyr/the-reddit-clima
         return minio_key
 
     print(f"Descargando dataset desde Kaggle: {dataset_slug}")
-    dataset_path = download_dataset(dataset_slug)
 
-    # print("Subiendo archivo a MinIO...")
-    # await upload_file(bucket, key, content)
-
-    # print(f"Archivo subido: {key}")
     return minio_key
