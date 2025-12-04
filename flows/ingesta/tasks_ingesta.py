@@ -9,20 +9,19 @@ def crear_directorio():
 
 @task(retries=1, retry_delay_seconds=10)
 async def descargar_reddit_dump(url: str):
-    file_name = url.split("/")[-1]
-    key = f"{settings.RAW_FOLDER}/{file_name}"
-
+    dataset_slug = "pavellexyr/the-reddit-climate-change-dataset"
+    target_file = "the-reddit-climate-change-dataset-comments.csv"
     bucket = await get_minio_bucket()
+    minio_key = f"{settings.RAW_FOLDER}/{target_file}"
+    
+    # # Check if already exists in MinIO
+    # if await file_exists(bucket, minio_key):
+    #     print(f"Archivo ya existe en MinIO: {minio_key}")
+    #     return minio_key
 
-    if await file_exists(bucket, key):
-        print(f"Archivo ya existe: {key}")
-        return key
+        # Download from Kaggle (runs in thread pool to avoid blocking)
+    print(f"Descargando dataset desde Kaggle: {dataset_slug}")
+    dataset_path  = download_dataset(dataset_slug)
 
-    print(f"Descargando dataset desde {url}")
-    content = download_file(url)
-
-    print("Subiendo archivo a MinIO...")
-    await upload_file(bucket, key, content)
-
-    print(f"Archivo subido: {key}")
-    return key
+    print(f"Archivo subido: {dataset_path }")
+    return dataset_path 
