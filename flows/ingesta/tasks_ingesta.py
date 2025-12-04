@@ -26,6 +26,26 @@ async def descargar_reddit_dump(url: str):
     print(f"Archivos CSV encontrados: {csv_files}")
     csv_files = get_csv_files(dataset_path)
 
+        # Find the target file
+    target_path = None
+    for csv_file in csv_files:
+        if csv_file.name == target_file:
+            target_path = csv_file
+            break   
+    if not target_path:
+        raise FileNotFoundError(
+        f"Archivo {target_file} no encontrado. "
+        f"Archivos disponibles: {[f.name for f in csv_files]}"
+    )
+
+        # Read file and upload to MinIO
+    print(f"Subiendo {target_file} a MinIO...")
+    with open(target_path, 'rb') as f:
+        content = f.read()
+    
+    await upload_file(bucket, minio_key, content)
+    print(f"Archivo subido exitosamente: {minio_key}")
+
     print(f"Archivo subido: {dataset_path }")
     print(csv_files)
     return dataset_path 
