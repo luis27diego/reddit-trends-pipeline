@@ -22,7 +22,7 @@ async def descargar_reddit_dump(url: str):
         # Download from Kaggle (runs in thread pool to avoid blocking)
     print(f"Descargando dataset desde Kaggle: {dataset_slug}")
     dataset_path  = download_dataset(dataset_slug)
-
+    csv_files = "HOLA MUNDO"
     print(f"Archivos CSV encontrados: {csv_files}")
     csv_files = get_csv_files(dataset_path)
 
