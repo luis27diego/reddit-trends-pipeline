@@ -91,11 +91,15 @@ def cargar_resultados_a_db(rutas_spark: dict):
         try:
             # Spark maneja la complejidad de S3A y la estructura de carpetas.
             df = leer_resultado_spark_a_pandas(rutas_spark, categoria, subcarpeta)
+        
+        except Exception as e:
+            logger.error(f"   [FALLO CRÍTICO] Error al leer con Spark la tabla {tabla}: {e}")
             
+        try:
             # Una vez que tenemos el df en Pandas, usamos la función de guardado existente
             limpiar_y_cargar(df, tabla, if_exists)
             
         except Exception as e:
             # La excepción podría ser FileNotFoundError si Spark no encuentra el path S3A.
-            logger.error(f"   [FALLO CRÍTICO] Error al leer con Spark o cargar la tabla {tabla}: {e}")
+            logger.error(f"   [FALLO] Error al cargar la tabla {tabla}: {e}")
             pass
