@@ -97,51 +97,52 @@ flowchart TB
 
 ### Pipeline ETL Completo
 
-<img src="docs\codigo.png" width="400" />
+![diagrama](.docs\codigo2.drawio.svg)
 
 
 ### Diagrama de Secuencia
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
-    autonumber
-    participant K as Kaggle
-    participant PW as Prefect Worker
-    participant MI as MinIO
-    participant SP as Spark Cluster
-    participant PG as PostgreSQL
-    participant BI as PoweBI/API
+    autonumber
+    participant K as Kaggle
+    participant PW as Prefect Worker
+    participant MI as MinIO
+    participant SP as Spark Cluster
+    participant PG as PostgreSQL
+    participant BI as PoweBI/API
 
-    rect rgb(46, 204, 113, 0.1)
-        Note over PW,MI: FLUJO 1: INGESTA
-        PW->>K: download_dataset()
-        K-->>PW: CSV (raw data)
-        PW->>MI: upload_file() → raw/
-    end
+    rect rgb(46, 204, 113, 0.1)
+        Note over PW,MI: FLUJO 1: INGESTA
+        PW->>K: download_dataset()
+        K-->>PW: CSV (raw data)
+        PW->>MI: upload_file() → raw/
+    end
 
-    rect rgb(241, 196, 15, 0.1)
-        Note over PW,SP: FLUJO 2: PROCESAMIENTO
-        PW->>PW: run_deployment("procesamiento")
-        PW->>SP: create_spark_session()
-        SP->>MI: leer_csv_optimizado()
-        MI-->>SP: DataFrame
-        SP->>SP: Análisis (trends, sentiment, etc.)
-        SP->>MI: guardar_resultado() → analytics/
-    end
+    rect rgb(241, 196, 15, 0.1)
+        Note over PW,SP: FLUJO 2: PROCESAMIENTO
+        PW->>PW: run_deployment("procesamiento")
+        PW->>SP: create_spark_session()
+        SP->>MI: leer_csv_optimizado()
+        MI-->>SP: DataFrame
+        SP->>SP: Análisis (trends, sentiment, etc.)
+        SP->>MI: guardar_resultado() → analytics/
+    end
 
-    rect rgb(52, 152, 219, 0.1)
-        Note over PW,PG: FLUJO 3: CARGA
-        PW->>PW: run_deployment("carga_bd")
-        PW->>MI: Lee resultados
-        MI-->>PW: CSVs procesados
-        PW->>PG: cargar_resultados_a_db()
-    end
+    rect rgb(52, 152, 219, 0.1)
+        Note over PW,PG: FLUJO 3: CARGA
+        PW->>PW: run_deployment("carga_bd")
+        PW->>MI: Lee resultados
+        MI-->>PW: CSVs procesados
+        PW->>PG: cargar_resultados_a_db()
+    end
 
-    rect rgb(231, 76, 60, 0.1)
-        Note over PG,BI: CONSULTA
-        BI->>PG: SELECT queries
-        PG-->>BI: Analytics data
-    end
+    rect rgb(231, 76, 60, 0.1)
+        Note over PG,BI: CONSULTA
+        BI->>PG: SELECT queries
+        PG-->>BI: Analytics data
+    end
 ```
 
 ---
