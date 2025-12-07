@@ -97,7 +97,7 @@ flowchart TB
 
 ### Pipeline ETL Completo
 
-![diagrama](.docs\codigo2.drawio.svg)
+![diagrama](docs\codigo2.drawio.svg)
 
 
 ### Diagrama de Secuencia
