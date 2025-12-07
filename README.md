@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)](https://docker.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)](https://postgresql.org)
 
-Pipeline ETL completo para análisis de tendencias del dataset de Reddit sobre Cambio Climático. Procesa millones de comentarios usando **Apache Spark** distribuido, orquestado con **Prefect**, almacenado en **MinIO** y visualizado con **Metabase** y **Power BI**.
+Pipeline ETL completo para análisis de tendencias del dataset de Reddit sobre Cambio Climático. Procesa millones de comentarios usando **Apache Spark** distribuido, orquestado con **Prefect**, almacenado en **MinIO** y visualizado con y **Power BI**.
 
 ---
 
@@ -32,7 +32,7 @@ Pipeline ETL completo para análisis de tendencias del dataset de Reddit sobre C
 - 🔄 **Orquestación de flujos** con Prefect 3.x
 - 📊 **Múltiples análisis**: temporal, sentimiento, engagement, texto
 - 🎯 **API REST** con FastAPI
-- 📈 **Dashboards BI** con Metabase y Power BI
+- 📈 **Dashboards BI** con y Power BI
 - 🐳 **Containerizado** con Docker Compose
 
 ---
@@ -212,7 +212,6 @@ prefect deployment run "Flujo de Ingesta de Reddit/ingesta-deployment"
 | **PostgreSQL** | 5432 | Base de datos |
 | **Prefect UI** | 4200 | Orquestador de flujos |
 | **FastAPI** | 8000 | REST API |
-| **Metabase** | 3000 | BI Dashboards |
 
 ---
 
@@ -250,7 +249,6 @@ El pipeline genera los siguientes análisis sobre los comentarios de Reddit:
 | Storage | MinIO | Latest |
 | Base de Datos | PostgreSQL | 15 |
 | API | FastAPI | Latest |
-| BI | Metabase | Latest |
 | BI Desktop | Power BI | - |
 | Contenedores | Docker Compose | - |
 
