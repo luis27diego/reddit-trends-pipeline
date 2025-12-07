@@ -41,55 +41,8 @@ Pipeline ETL completo para análisis de tendencias del dataset de Reddit sobre C
 
 ### Diagrama C4 - Nivel de Contenedores
 
-```mermaid
-flowchart TB
-    subgraph External["🌐 Fuentes Externas"]
-        KG[("📦 Kaggle<br/>Reddit Dataset")]
-    end
+![diagrama](docs/tecnologia.svg)
 
-    subgraph Docker["🐳 Docker Compose"]
-        subgraph Orchestration["⚡ Orquestación"]
-            PS["Prefect Server<br/>:4200"]
-            PW["Prefect Worker"]
-        end
-
-        subgraph Spark["🔥 Spark Cluster"]
-            SM["Spark Master<br/>:18080"]
-            SW1["Worker 1"]
-            SW2["Worker 2"]
-        end
-
-        subgraph Storage["💾 Storage"]
-            MIO[("MinIO<br/>:9000/:9001")]
-            PG[("PostgreSQL<br/>:5432")]
-        end
-
-        subgraph Presentation["📊 Presentación"]
-            API["FastAPI<br/>:8000"]
-            MB["PowerBI"]
-        end
-    end
-
-
-    KG -->|"1. Descarga"| PW
-    PS -->|"Orquesta"| PW
-    PW -->|"2. Upload raw/"| MIO
-    PW -->|"3. Submit Job"| SM
-    SM --> SW1 & SW2
-    SW1 & SW2 -->|"4. Lee/Escribe"| MIO
-    PW -->|"5. Carga analytics"| PG
-    API -->|"Query"| PG
-    MB -->|"Query"| PG
-
-
-    %% === PALETA PASTEL NUEVA ===
-    style External fill:#F7C6C7,stroke:#F28B90,color:#5A2A2C,stroke-width:2px
-    style Docker fill:#D8C8FF,stroke:#B399FF,color:#3A2A5A,stroke-width:2px
-    style Orchestration fill:#FFF3B0,stroke:#FFE066,color:#5A4F1A,stroke-width:2px
-    style Spark fill:#FFDAC1,stroke:#FFB899,color:#5A392A,stroke-width:2px
-    style Storage fill:#C8F7DC,stroke:#93E9B9,color:#1D3D2B,stroke-width:2px
-    style Presentation fill:#C7EFFF,stroke:#9AD7FF,color:#1A3C50,stroke-width:2px
-```
 
 ---
 
@@ -101,50 +54,7 @@ flowchart TB
 
 ### Diagrama de Secuencia
 
-```mermaid
-%%{init: {'theme': 'neutral'}}%%
-sequenceDiagram
-    autonumber
-    participant K as Kaggle
-    participant PW as Prefect Worker
-    participant MI as MinIO
-    participant SP as Spark Cluster
-    participant PG as PostgreSQL
-    participant BI as PoweBI/API
-
-    rect rgb(46, 204, 113, 0.1)
-        Note over PW,MI: FLUJO 1: INGESTA
-        PW->>K: download_dataset()
-        K-->>PW: CSV (raw data)
-        PW->>MI: upload_file() → raw/
-    end
-
-    rect rgb(241, 196, 15, 0.1)
-        Note over PW,SP: FLUJO 2: PROCESAMIENTO
-        PW->>PW: run_deployment("procesamiento")
-        PW->>SP: create_spark_session()
-        SP->>MI: leer_csv_optimizado()
-        MI-->>SP: DataFrame
-        SP->>SP: Análisis (trends, sentiment, etc.)
-        SP->>MI: guardar_resultado() → analytics/
-    end
-
-    rect rgb(52, 152, 219, 0.1)
-        Note over PW,PG: FLUJO 3: CARGA
-        PW->>PW: run_deployment("carga_bd")
-        PW->>MI: Lee resultados
-        MI-->>PW: CSVs procesados
-        PW->>PG: cargar_resultados_a_db()
-    end
-
-    rect rgb(231, 76, 60, 0.1)
-        Note over PG,BI: CONSULTA
-        BI->>PG: SELECT queries
-        PG-->>BI: Analytics data
-    end
-```
-
----
+![diagrama](docs/secuencia.svg)
 
 ## 📦 Requisitos
 
